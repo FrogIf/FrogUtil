@@ -45,6 +45,7 @@
   <ItemGroup>
     <Compile Include="Collection\BlockingQueue.cs" />
     <Compile Include="Common\PropertySource.cs" />
+    <Compile Include="Common\StringUtil.cs" />
     <Compile Include="Connection\SerialPortOperator.cs" />
     <Compile Include="File\FileUtil.cs" />
     <Compile Include="Logger\AbstractLogger.cs" />
