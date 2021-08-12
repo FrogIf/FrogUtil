@@ -1,6 +1,6 @@
 ﻿namespace Frog.Util.Common
 {
-    class StringUtil
+    public class StringUtil
     {
         public static bool IsBlank(string str)
         {
