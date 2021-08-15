@@ -1,4 +1,5 @@
-﻿using Frog.Util.Log;
+﻿using Frog.Util.Common;
+using Frog.Util.Log;
 using System;
 using System.Collections.Generic;
 using System.IO.Ports;
@@ -75,6 +76,7 @@ namespace Frog.Util.Connection
                     break;
                 case DataType.HEX:
                     List<byte> hexDataSend = new List<byte>();
+                    content = content.Replace(" ", "");
                     int j = 0;
                     for (int i = 0; i < content.Length - 1;)
                     {
@@ -291,8 +293,8 @@ namespace Frog.Util.Connection
 
         public DataType ReceiveDataType
         {
-            get;
-            set;
+            get { return this.receiveDataType; }
+            set { this.receiveDataType = value; }
         }
 
         /// <summary>
@@ -315,6 +317,34 @@ namespace Frog.Util.Connection
                 default:
                     throw new ArgumentException("Unrecognized stopBitText : " + stopBitText);
             }
+        }
+
+        /// <summary>
+        /// 校验hex数据是否正确
+        /// </summary>
+        /// <param name="message">待校验的原始数据</param>
+        /// <returns>结果: true - 正确; false - 错误</returns>
+        public static bool HexDataValid(string message)
+        {
+            if (message == null && StringUtil.IsBlank(message)) { return false; }
+            message = message.Replace(" ", "");
+            message = message.ToUpper();
+            char[] chars = message.ToCharArray();
+            if(chars.Length % 2 != 0)
+            {
+                logger.warn("HEX格式不正确, len : " + chars.Length);
+                return false;
+            }
+            for (int i = 0; i < chars.Length; i++)
+            {
+                char ch = chars[i];
+                if (ch < '0' || (ch > '9' && (ch < 'A' || ch > 'F')))
+                {
+                    logger.error("HEX格式不正确, pos : " + i + ", char : " + ch);
+                    return false;
+                }
+            }
+            return true;
         }
 
     }
