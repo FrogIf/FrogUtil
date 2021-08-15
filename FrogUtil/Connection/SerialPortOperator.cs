@@ -26,6 +26,8 @@ namespace Frog.Util.Connection
         // 标记串口正在接收数据
         private volatile bool Receiving = false;
 
+        private volatile DataType receiveDataType = DataType.CHAR;
+
         public SerialPortOperator(List<ReceiveDataHandler> handlers)
         {
             // 增加串口接收数据监听
@@ -39,7 +41,7 @@ namespace Frog.Util.Connection
         /// <summary>
         /// 发送数据类型
         /// </summary>
-        public enum SendDataType
+        public enum DataType
         {
             CHAR,
             HEX
@@ -51,7 +53,7 @@ namespace Frog.Util.Connection
         /// <param name="content">发送内容</param>
         /// <param name="sendDataType">发送类型</param>
         /// <returns>是否发送成功: true - 成功; false - 失败</returns>
-        public bool SendData(string content, SendDataType sendDataType = SendDataType.CHAR)
+        public bool SendData(string content, DataType sendDataType = DataType.CHAR)
         {
             if (content == null)
             {
@@ -67,11 +69,11 @@ namespace Frog.Util.Connection
             bool result = false;
             switch (sendDataType)
             {
-                case SendDataType.CHAR:
+                case DataType.CHAR:
                     serialPort.Write(content);
                     result = true;
                     break;
-                case SendDataType.HEX:
+                case DataType.HEX:
                     List<byte> hexDataSend = new List<byte>();
                     int j = 0;
                     for (int i = 0; i < content.Length - 1;)
@@ -112,16 +114,27 @@ namespace Frog.Util.Connection
             Receiving = true;
 
             int size = serialPort.BytesToRead;
-            byte[] buf = new byte[size];
-            for (int i = 0; i < size; i++)
+            if (DataType.CHAR == receiveDataType)
             {
-                buf[i] = (byte)serialPort.ReadByte();
+                string message = serialPort.ReadExisting();
+                // 并行执行所有监听
+                Parallel.ForEach(handlers, (handler) => {
+                    handler.Handle(message, size);
+                });
             }
+            else
+            {
+                byte[] buf = new byte[size];
+                for (int i = 0; i < size; i++)
+                {
+                    buf[i] = (byte)serialPort.ReadByte();
+                }
 
-            // 并行执行所有监听
-            Parallel.ForEach(handlers, (handler) => {
-                handler.Handle(buf);
-            });
+                // 并行执行所有监听
+                Parallel.ForEach(handlers, (handler) => {
+                    handler.Handle(buf, size);
+                });
+            }
 
             Receiving = false;
         }
@@ -135,13 +148,13 @@ namespace Frog.Util.Connection
             /// 串口接收到消息之后, 会回调该方法
             /// </summary>
             /// <param name="message">串口接收到的消息</param>
-            void Handle(string message);
+            void Handle(string message, int receiveCount);
 
             /// <summary>
             /// 串口接收消息之后, 回调方法, 传入字节数组
             /// </summary>
             /// <param name="buf">串口接收到的字节数组</param>
-            void Handle(byte[] buf);
+            void Handle(byte[] buf, int receiveCount);
         }
 
         public delegate void CloseSuccessCallback();
@@ -202,6 +215,37 @@ namespace Frog.Util.Connection
         }
 
         /// <summary>
+        /// 设置停止位
+        /// </summary>
+        public bool SetStopBits(StopBits stopBits)
+        {
+            if (serialPort.IsOpen)
+            {
+                logger.warn("serial port has bean opened, can't set baud rate.");
+                return false;
+            }
+            else
+            {
+                serialPort.StopBits = stopBits;
+                return true;
+            }
+        }
+
+        public bool SetDataBits(int dataBits)
+        {
+            if (serialPort.IsOpen)
+            {
+                logger.warn("serial port has bean opened, can't set baud rate.");
+                return false;
+            }
+            else
+            {
+                serialPort.DataBits = dataBits;
+                return true;
+            }
+        }
+
+        /// <summary>
         /// 设置串口号
         /// </summary>
         /// <param name="portName"></param>
@@ -243,6 +287,34 @@ namespace Frog.Util.Connection
             }
             logger.info("serial port has open on : {}", serialPort.PortName);
             return true;
+        }
+
+        public DataType ReceiveDataType
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// 停止位转换
+        /// </summary>
+        /// <param name="stopBitText"></param>
+        /// <returns></returns>
+        public static StopBits GetStopBits(string stopBitText)
+        {
+            switch (stopBitText)
+            {
+                case "One":
+                    return StopBits.One;
+                case "Two":
+                    return StopBits.Two;
+                case "None":
+                    return StopBits.None;
+                case "OnePointFive":
+                    return StopBits.OnePointFive;
+                default:
+                    throw new ArgumentException("Unrecognized stopBitText : " + stopBitText);
+            }
         }
 
     }
