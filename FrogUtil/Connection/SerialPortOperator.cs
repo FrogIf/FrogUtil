@@ -47,6 +47,46 @@ namespace Frog.Util.Connection
         }
 
         /// <summary>
+        /// 发送二进制数据
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public bool SendData(byte[] data)
+        {
+            if (data == null || data.Length == 0)
+            {
+                return false;
+            }
+            if (!serialPort.IsOpen)
+            {
+                return false;
+            }
+
+            serialPort.Write(data, 0, data.Length);
+            return true;
+        }
+
+        /// <summary>
+        /// 发送二进制数据
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public bool SendData(byte[] data, int offset, int count)
+        {
+            if (data == null || offset >= data.Length)
+            {
+                return false;
+            }
+            if (!serialPort.IsOpen)
+            {
+                return false;
+            }
+
+            serialPort.Write(data, offset, count);
+            return true;
+        }
+
+        /// <summary>
         /// 发送数据
         /// </summary>
         /// <param name="content">发送内容</param>
