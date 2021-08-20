@@ -1,5 +1,4 @@
 ﻿using Frog.Util.Common;
-using Frog.Util.Log;
 using System;
 using System.Collections.Generic;
 using System.IO.Ports;
@@ -13,7 +12,6 @@ namespace Frog.Util.Connection
     /// </summary>
     public class SerialPortOperator
     {
-        private static readonly ILogger logger = LoggerFactory.GetLogger("SerialPortOperator");
 
         // 实际串口对象
         private readonly SerialPort serialPort = new SerialPort();
@@ -58,12 +56,10 @@ namespace Frog.Util.Connection
         {
             if (content == null)
             {
-                logger.warn("send content is null, can't send.");
                 return false;
             }
             if (!serialPort.IsOpen)
             {
-                logger.warn("serial port is not open, can't send data.");
                 return false;
             }
 
@@ -97,7 +93,6 @@ namespace Frog.Util.Connection
                     result = true;
                     break;
                 default:
-                    logger.warn("unrecognizable data type : " + sendDataType);
                     break;
             }
 
@@ -168,18 +163,15 @@ namespace Frog.Util.Connection
         {
             if (serialPort.IsOpen)
             {
-                logger.info("serial port prepare close.");
                 Closing = true;  // 标记当前串口准备关闭
                 while (Receiving)   // 自旋, 等待接收完成后继续执行
                 {
-                    logger.info("serial port closing...");
                     Application.DoEvents(); // 让出CPU控制权
                 }
                 serialPort.Close();
                 closeSuccessCallback();
                 Closing = false;
                 Receiving = false;
-                logger.info("serial port has been closed.");
             }
         }
 
@@ -206,7 +198,6 @@ namespace Frog.Util.Connection
         {
             if (serialPort.IsOpen)
             {
-                logger.warn("serial port has bean opened, can't set baud rate.");
                 return false;
             }
             else
@@ -223,7 +214,6 @@ namespace Frog.Util.Connection
         {
             if (serialPort.IsOpen)
             {
-                logger.warn("serial port has bean opened, can't set baud rate.");
                 return false;
             }
             else
@@ -237,7 +227,6 @@ namespace Frog.Util.Connection
         {
             if (serialPort.IsOpen)
             {
-                logger.warn("serial port has bean opened, can't set baud rate.");
                 return false;
             }
             else
@@ -255,7 +244,6 @@ namespace Frog.Util.Connection
         {
             if (serialPort.IsOpen)
             {
-                logger.warn("serial port has bean opened, can't set port name.");
                 return false;
             }
             else
@@ -273,7 +261,6 @@ namespace Frog.Util.Connection
         {
             if (serialPort.IsOpen)
             {
-                logger.warn("serial port has bean opened, can't be open again.");
                 return false;
             }
 
@@ -287,7 +274,6 @@ namespace Frog.Util.Connection
             {
                 return false;
             }
-            logger.info("serial port has open on : {}", serialPort.PortName);
             return true;
         }
 
@@ -324,15 +310,15 @@ namespace Frog.Util.Connection
         /// </summary>
         /// <param name="message">待校验的原始数据</param>
         /// <returns>结果: true - 正确; false - 错误</returns>
-        public static bool HexDataValid(string message)
+        public static bool HexDataValid(string message, ref string tip)
         {
             if (message == null && StringUtil.IsBlank(message)) { return false; }
             message = message.Replace(" ", "");
             message = message.ToUpper();
             char[] chars = message.ToCharArray();
-            if(chars.Length % 2 != 0)
+            if (chars.Length % 2 != 0)
             {
-                logger.warn("HEX格式不正确, len : " + chars.Length);
+                tip = "HEX格式不正确, len : " + chars.Length;
                 return false;
             }
             for (int i = 0; i < chars.Length; i++)
@@ -340,7 +326,7 @@ namespace Frog.Util.Connection
                 char ch = chars[i];
                 if (ch < '0' || (ch > '9' && (ch < 'A' || ch > 'F')))
                 {
-                    logger.error("HEX格式不正确, pos : " + i + ", char : " + ch);
+                    tip = "HEX格式不正确, pos : " + i + ", char : " + ch;
                     return false;
                 }
             }
