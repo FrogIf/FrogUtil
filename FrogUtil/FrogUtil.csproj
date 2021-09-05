@@ -46,7 +46,12 @@
     <Compile Include="Collection\BlockingQueue.cs" />
     <Compile Include="Common\PropertySource.cs" />
     <Compile Include="Common\StringUtil.cs" />
-    <Compile Include="Connection\SerialPortOperator.cs" />
+    <Compile Include="Connection\AbstractConnection.cs" />
+    <Compile Include="Connection\EthernetOperator.cs" />
+    <Compile Include="Connection\IConnection.cs" />
+    <Compile Include="Connection\IDataConsumer.cs" />
+    <Compile Include="Connection\SerialPortConnection.cs" />
+    <Compile Include="Extend\BytesDataUtil.cs" />
     <Compile Include="File\FileUtil.cs" />
     <Compile Include="Logger\AbstractLogger.cs" />
     <Compile Include="Logger\ChainLogger.cs" />
@@ -57,5 +62,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="WinForm\MessageTone.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
