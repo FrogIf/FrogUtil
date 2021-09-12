@@ -130,5 +130,16 @@ namespace Frog.Util.Collection
                 return m_isRunning;
             }
         }
+
+        /// <summary>
+        /// 队列的最大容量
+        /// </summary>
+        public int MaxQueueSize
+        {
+            get
+            {
+                return this.m_maxSize;
+            }
+        }
     }
 }
